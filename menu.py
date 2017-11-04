@@ -24,6 +24,43 @@ logging.basicConfig(
 )
 
 
+class TextButton:
+
+    def __init__(
+        self,
+        index=None,
+        coords=None,
+        surface=None,
+        fill_colour=(0, 0, 0),
+        border_colour=(254, 255, 250),
+        label="",
+        label_colour=(255, 255, 255),
+    ):
+        self.index = index
+        self.coords = coords
+        self.surface = surface
+        self.fill_colour = fill_colour
+        self.border_colour = border_colour
+        self.label = label
+        self.label_colour = label_colour
+
+        logging.debug(
+            "Making button with text '%s' at (%s)",
+            self.label,
+            self.coords
+        )
+
+        font = pygame.font.Font(None, 24)
+        label_surface = font.render(str(self.label), 1, (self.label_colour))
+        self.surface.blit(label_surface, self.coords)
+        self.rect = pygame.draw.rect(
+            self.surface,
+            self.border_colour,
+            (self.coords[0] - 5, self.coords[1] - 5, 100, 65),
+            1
+        )
+
+
 def setup_environment():
     """Set up all the required environment variables"""
     env_vars = [
@@ -43,15 +80,15 @@ def setup_menu(surface, background_colour=BLUE):
     # set up the fixed items on the menu
     # Add buttons and labels
     menu_config = [
-        ("Speed", 20, 10, WHITE),
-        ("Maze", 125, 10, WHITE),
-        ("Rainbow", 20, 80, WHITE),
-        ("Golf", 125, 80, WHITE),
-        ("Pi Noon", 20, 150, WHITE),
-        ("Obstacle", 125, 150, WHITE),
-        ("Shooting", 20, 220, WHITE),
-        ("RC", 125, 220, WHITE),
-        ("Exit", 20, 290, WHITE),
+        ("Speed", (20, 10)),
+        ("Maze", (125, 10)),
+        ("Rainbow", (20, 80)),
+        ("Golf", (125, 80)),
+        ("Pi Noon", (20, 150)),
+        ("Obstacle", (125, 150)),
+        ("Shooting", (20, 220)),
+        ("RC", (125, 220)),
+        ("Exit", (20, 290)),
     ]
 
     # perform list comprehension on menu_config, wherein we call
@@ -59,24 +96,10 @@ def setup_menu(surface, background_colour=BLUE):
     # note *item performs unpacking of the tuple and provides them
     # as individual arguments to make_button
     return [
-        make_button(index, *item)
+        TextButton(surface=surface, index=index, label=item[0], coords=item[1])
         for index, item
         in enumerate(menu_config)
     ]
-
-
-def make_button(index, text, xpo, ypo, colour):
-    """Make a text button at the specified x, y coordinates
-    with the specified colour. Also adds a border (not configurable)"""
-    logging.debug("Making button with text '%s' at (%d, %d)", text, xpo, ypo)
-    font = pygame.font.Font(None, 24)
-    label = font.render(str(text), 1, (colour))
-    screen.blit(label, (xpo, ypo))
-    return dict(
-        index=index,
-        label=text,
-        rect=pygame.draw.rect(screen, CREAM, (xpo - 5, ypo - 5, 100, 65), 1)
-    )
 
 
 def on_click(mousepos):
@@ -84,14 +107,13 @@ def on_click(mousepos):
     logging.debug("on_click: %s", mousepos)
     # Iterate through our list of buttons and get the first one
     # whose rect returns True for pygame.Rect.collidepoint()
-    try:
-        button = next(obj for obj in buttons if obj['rect'].collidepoint(mousepos))
+        button = next(obj for obj in buttons if obj.rect.collidepoint(mousepos))
         logging.info(
             "%s clicked - launching %d",
-            button["label"], button["index"]
+            button.label, button.index
         )
         # Call button_handler with the matched button's index value
-        button_handler(button['index'])
+        button_handler(button.index)
     except StopIteration:
         logging.debug(
             "Click at pos %s did not interact with any button",
