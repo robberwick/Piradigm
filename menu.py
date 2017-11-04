@@ -6,59 +6,19 @@ import time
 import pygame
 from pygame.locals import *
 
+from buttons import TextButton
+import colours
+
 # Global variables
 
 # screen size
 SCREEN_SIZE = width, height = 240, 320
-
-# colours
-BLUE = 26, 0, 255
-CREAM = 254, 255, 250
-BLACK = 0, 0, 0
-WHITE = 255, 255, 255
 
 logging.basicConfig(
     filename='piradigm.log',
     level=logging.DEBUG,
     format='%(asctime)s %(message)s'
 )
-
-
-class TextButton:
-
-    def __init__(
-        self,
-        index=None,
-        coords=None,
-        surface=None,
-        fill_colour=(0, 0, 0),
-        border_colour=(254, 255, 250),
-        label="",
-        label_colour=(255, 255, 255),
-    ):
-        self.index = index
-        self.coords = coords
-        self.surface = surface
-        self.fill_colour = fill_colour
-        self.border_colour = border_colour
-        self.label = label
-        self.label_colour = label_colour
-
-        logging.debug(
-            "Making button with text '%s' at (%s)",
-            self.label,
-            self.coords
-        )
-
-        font = pygame.font.Font(None, 24)
-        label_surface = font.render(str(self.label), 1, (self.label_colour))
-        self.surface.blit(label_surface, self.coords)
-        self.rect = pygame.draw.rect(
-            self.surface,
-            self.border_colour,
-            (self.coords[0] - 5, self.coords[1] - 5, 100, 65),
-            1
-        )
 
 
 def setup_environment():
@@ -72,7 +32,7 @@ def setup_environment():
         os.environ[var_name] = val
 
 
-def setup_menu(surface, background_colour=BLUE):
+def setup_menu(surface, background_colour=colours.BLUE):
     """Set up the menu on the specified surface"""
     # flood fill the surface with the background colour
     surface.fill(background_colour)
@@ -102,23 +62,44 @@ def setup_menu(surface, background_colour=BLUE):
     ]
 
 
+def get_button_at_position(pos):
+    """Returns the TextButton object at the specified position.
+    Returns None if No corresponding button"""
+    # Iterate through our list of buttons and get the first one
+    # whose rect returns True for pygame.Rect.collidepoint()
+    try:
+        button = next(obj for obj in menu_buttons if obj.rect.collidepoint(mousepos))
+    except StopIteration:
+        button = None
+    return button
+
+
 def on_click(mousepos):
     """Click handling function to check mouse location"""
     logging.debug("on_click: %s", mousepos)
-    # Iterate through our list of buttons and get the first one
-    # whose rect returns True for pygame.Rect.collidepoint()
-        button = next(obj for obj in buttons if obj.rect.collidepoint(mousepos))
+    button = get_button_at_position(mousepos)
+
+    if button:
         logging.info(
             "%s clicked - launching %d",
             button.label, button.index
         )
         # Call button_handler with the matched button's index value
         button_handler(button.index)
-    except StopIteration:
+    else:
         logging.debug(
             "Click at pos %s did not interact with any button",
             mousepos
         )
+
+
+def on_mouse_move(mousepos):
+    """Mouse move handler to check mouse location"""
+    logging.debug("on_mouse_move: %s", mousepos)
+    active_button = get_button_at_position(mousepos)
+
+    for button in menu_buttons:
+        button.hover(is_hovering=button == active_button)
 
 
 def button_handler(number):
@@ -144,18 +125,22 @@ pygame.mouse.set_visible(False)
 
 logging.info("Setting screen size to %s", SCREEN_SIZE)
 screen = pygame.display.set_mode(SCREEN_SIZE)
-buttons = setup_menu(screen)
+menu_buttons = setup_menu(screen)
 
 # While loop to manage touch screen inputs
 while True:
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
             logging.debug("screen pressed: %s", event.pos)
-            pos = (event.pos[0], event.pos[1])
+
             # for debugging purposes - adds a small dot
             # where the screen is pressed
             # pygame.draw.circle(screen, WHITE, pos, 2, 0)
-            on_click(pos)
+            on_click(event.pos)
+
+        if event.type == pygame.MOUSEMOTION:
+            logging.debug("Mouse over: %s", get_button_at_position(event.pos))
+            on_mouse_move(event.pos)
 
         # ensure there is always a safe way to end the program
         # if the touch screen fails

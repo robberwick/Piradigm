@@ -1,0 +1,6 @@
+# colours
+BLUE = 26, 0, 255
+CREAM = 254, 255, 250
+BLACK = 0, 0, 0
+WHITE = 255, 255, 255
+YELLOW = 0, 255, 255
