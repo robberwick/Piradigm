@@ -68,7 +68,7 @@ def get_button_at_position(pos):
     # Iterate through our list of buttons and get the first one
     # whose rect returns True for pygame.Rect.collidepoint()
     try:
-        button = next(obj for obj in menu_buttons if obj.rect.collidepoint(mousepos))
+        button = next(obj for obj in menu_buttons if obj.rect.collidepoint(pos))
     except StopIteration:
         button = None
     return button
