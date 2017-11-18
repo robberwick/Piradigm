@@ -7,6 +7,12 @@ from inputs import get_gamepad
 #  from explorerhat import motor
 import piconzero as pz, time
 
+from logs import get_module_logger
+
+
+logger = get_module_logger(__name__)
+
+
 def mixer(inYaw, inThrottle,):
     left = inThrottle + inYaw
     right = inThrottle - inYaw
@@ -19,11 +25,12 @@ def mixer(inYaw, inThrottle,):
     results = [out_right, out_left]
     return results
 
+
 def constrain(val, min_val, max_val):
     return min(max_val, max(min_val, val))
 
 # Setup
-maxPower  = 1.0
+maxPower = 1.0
 power_left = 0.0
 power_right = 0.0
 x_axis = 0.0

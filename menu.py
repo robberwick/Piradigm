@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 import time
@@ -6,6 +5,10 @@ import time
 import pygame
 from pygame.locals import *
 
+from logs import get_module_logger
+
+
+logger = get_module_logger(__name__)
 # Global variables
 
 # screen size
@@ -16,12 +19,6 @@ BLUE = 26, 0, 255
 CREAM = 254, 255, 250
 BLACK = 0, 0, 0
 WHITE = 255, 255, 255
-
-logging.basicConfig(
-    filename='piradigm.log',
-    level=logging.DEBUG,
-    format='%(asctime)s %(message)s'
-)
 
 
 def setup_environment():
@@ -68,7 +65,7 @@ def setup_menu(surface, background_colour=BLUE):
 def make_button(index, text, xpo, ypo, height, width, colour):
     """Make a text button at the specified x, y coordinates
     with the specified colour. Also adds a border (not configurable)"""
-    logging.debug("Making button with text '%s' at (%d, %d)", text, xpo, ypo)
+    logger.debug("Making button with text '%s' at (%d, %d)", text, xpo, ypo)
     font = pygame.font.Font(None, 24)
     label = font.render(str(text), 1, (colour))
     screen.blit(label, (xpo, ypo))
@@ -81,19 +78,19 @@ def make_button(index, text, xpo, ypo, height, width, colour):
 
 def on_click(mousepos):
     """Click handling function to check mouse location"""
-    logging.debug("on_click: %s", mousepos)
+    logger.debug("on_click: %s", mousepos)
     # Iterate through our list of buttons and get the first one
     # whose rect returns True for pygame.Rect.collidepoint()
     try:
         button = next(obj for obj in buttons if obj['rect'].collidepoint(mousepos))
-        logging.info(
+        logger.info(
             "%s clicked - launching %d",
             button["label"], button["index"]
         )
         # Call button_handler with the matched button's index value
         button_handler(button['index'])
     except StopIteration:
-        logging.debug(
+        logger.debug(
             "Click at pos %s did not interact with any button",
             mousepos
         )
@@ -102,25 +99,25 @@ def on_click(mousepos):
 def button_handler(number):
     """Button action handler. Currently differentiates between
     exit and other buttons only"""
-    logging.debug("button %d pressed", number)
+    logger.debug("button %d pressed", number)
     if number == 0:    # specific script when exiting
         time.sleep(1)
 
     if number == 8:
         time.sleep(1)  # do something interesting here
-        logging.info("Exit button pressed. Exiting now.")
+        logger.info("Exit button pressed. Exiting now.")
         sys.exit()
 
 
 setup_environment()
 
-logging.info("Initialising pygame")
+logger.info("Initialising pygame")
 pygame.init()
 
-logging.info("Hiding Cursor")
+logger.info("Hiding Cursor")
 pygame.mouse.set_visible(False)
 
-logging.info("Setting screen size to %s", SCREEN_SIZE)
+logger.info("Setting screen size to %s", SCREEN_SIZE)
 screen = pygame.display.set_mode(SCREEN_SIZE)
 buttons = setup_menu(screen)
 
@@ -128,7 +125,7 @@ buttons = setup_menu(screen)
 while True:
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
-            logging.debug("screen pressed: %s", event.pos)
+            logger.debug("screen pressed: %s", event.pos)
             pos = (event.pos[0], event.pos[1])
             # for debugging purposes - adds a small dot
             # where the screen is pressed
